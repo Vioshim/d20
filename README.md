@@ -16,6 +16,7 @@ A fast, powerful, and extensible dice engine for D&D, d20 systems, and any other
 - Highly extensible API for custom behaviour and dice stringification
 - Built-in execution limits against malicious dice expressions
 - Tree-based dice representation for easy traversal
+- Fate dice support using `dF` or `df` notation (e.g., `4dF`, `4df`)
 
 ## Installing
 
@@ -56,11 +57,11 @@ This is the grammar supported by the dice parser, roughly ordered in how tightly
 
 These are the atoms used at the base of the syntax tree.
 
-| Name    | Syntax                           | Description           | Examples                       |
-|---------|----------------------------------|-----------------------|--------------------------------|
-| literal | `INT`, `DECIMAL`                 | A literal number.     | `1`, `0.5`, `3.14`             |
-| dice    | `INT? "d" (INT \| "%")`          | A set of die.         | `d20`, `3d6`                   |
-| set     | `"(" (num ("," num)* ","?)? ")"` | A set of expressions. | `()`, `(2,)`, `(1, 3+3, 1d20)` |
+| Name    | Syntax                                | Description           | Examples                       |
+| ------- | ------------------------------------- | --------------------- | ------------------------------ |
+| literal | `INT`, `DECIMAL`                      | A literal number.     | `1`, `0.5`, `3.14`             |
+| dice    | `INT? "d" (INT \| "%" \| "f" \| "F")` | A set of die.         | `d20`, `3d6`                   |
+| set     | `"(" (num ("," num)* ","?)? ")"`      | A set of expressions. | `()`, `(2,)`, `(1, 3+3, 1d20)` |
 
 Note that `(3d6)` is equivalent to `3d6`, but `(3d6,)` is the set containing the one element `3d6`.
 
@@ -71,7 +72,7 @@ These operations can be performed on dice and sets.
 #### Grammar
 
 | Name     | Syntax               | Description                        | Examples        |
-|----------|----------------------|------------------------------------|-----------------|
+| -------- | -------------------- | ---------------------------------- | --------------- |
 | set_op   | `operation selector` | An operation on a set (see below). | `kh3`, `ro<3`   |
 | selector | `seltype INT`        | A selection on a set (see below).  | `3`, `h1`, `>2` |
 
@@ -80,7 +81,7 @@ These operations can be performed on dice and sets.
 Operators are always followed by a selector, and operate on the items in the set that match the selector.
 
 | Syntax | Name           | Description                                                                  |
-|--------|----------------|------------------------------------------------------------------------------|
+| ------ | -------------- | ---------------------------------------------------------------------------- |
 | k      | keep           | Keeps all matched values.                                                    |
 | p      | drop           | Drops all matched values.                                                    |
 | rr     | reroll         | Rerolls all matched values until none match. (Dice only)                     |
@@ -95,7 +96,7 @@ Operators are always followed by a selector, and operate on the items in the set
 Selectors select from the remaining kept values in a set.
 
 | Syntax | Name           | Description                                           |
-|--------|----------------|-------------------------------------------------------|
+| ------ | -------------- | ----------------------------------------------------- |
 | X      | literal        | All values in this set that are literally this value. |
 | hX     | highest X      | The highest X values in the set.                      |
 | lX     | lowest X       | The lowest X values in the set.                       |
@@ -105,15 +106,15 @@ Selectors select from the remaining kept values in a set.
 ### Unary Operations
 
 | Syntax | Name     | Description              |
-|--------|----------|--------------------------|
+| ------ | -------- | ------------------------ |
 | +X     | positive | Does nothing.            |
 | -X     | negative | The negative value of X. |
 
 ### Binary Operations
 
 | Syntax | Name           |
-|--------|----------------|
-| X * Y  | multiplication |
+| ------ | -------------- |
+| X \* Y | multiplication |
 | X / Y  | division       |
 | X // Y | int division   |
 | X % Y  | modulo         |
@@ -231,7 +232,7 @@ objects, which can be accessed as such:
 or, in a easier-to-read format,
 
 ```text
-<Expression 
+<Expression
     roll=<BinOp
         left=<BinOp
             left=<Dice

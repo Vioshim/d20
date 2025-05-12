@@ -426,8 +426,11 @@ class Dice(Node):  # diceexpr
         """
         super().__init__()
         self.num = int(num)
-        if str(size) == "%":
-            self.size = str(size)
+        token = str(size)
+        if token == "%":
+            self.size = token
+        elif token in ("F", "f"):
+            self.size = "F"
         else:
             self.size = int(size)
 
